@@ -8,7 +8,9 @@ dotenv.config()
 const bot = new TelegramBot(process.env.BOT_TOKEN!, { polling: true })
 
 ;(async () => {
-	const browser = await puppeteer.launch()
+	const browser = await puppeteer.launch({
+		args: ["--no-sandbox"],
+	})
 	bot.on("message", async msg => {
 		const chatId = msg.chat.id
 		try {
