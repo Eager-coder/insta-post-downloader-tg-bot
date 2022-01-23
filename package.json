@@ -8,9 +8,6 @@
 		"build": "rm -rf dist && tsc",
 		"start": "node dist/index.js"
 	},
-	"engines": {
-		"node": "16.13.0"
-	},
 	"dependencies": {
 		"axios": "^0.25.0",
 		"dotenv": "^14.2.0",
