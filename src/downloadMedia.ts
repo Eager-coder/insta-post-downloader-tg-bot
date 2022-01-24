@@ -3,6 +3,7 @@ import fs from "fs/promises"
 import axios from "axios"
 import fsSync from "fs"
 import crypto from "crypto"
+import path from "path"
 
 async function downloadFile(fileUrl: string, outputLocationPath: string) {
 	const writer = fsSync.createWriteStream(outputLocationPath)
@@ -21,7 +22,6 @@ async function downloadFile(fileUrl: string, outputLocationPath: string) {
 			})
 			writer.on("close", () => {
 				if (!error) {
-					console.log("finished")
 					resolve(true)
 				}
 			})
@@ -29,7 +29,7 @@ async function downloadFile(fileUrl: string, outputLocationPath: string) {
 	})
 }
 
-export default async function downloadMedia(browser: Puppeteer.Browser, post_url: string, chat_id: string) {
+export default async function downloadMedia(browser: Puppeteer.Browser, post_url: string, tempFolder: string) {
 	const page = await browser.newPage()
 	await page.goto("https://snapinsta.app/")
 	await page.waitForSelector("form#get_video")
@@ -43,13 +43,12 @@ export default async function downloadMedia(browser: Puppeteer.Browser, post_url
 	let videoLinks = results.filter(link => !link.includes(".jpg"))
 
 	if (videoLinks.length) {
-		if (!fsSync.existsSync(chat_id)) {
-			await fs.mkdir(chat_id)
-		}
+		const tempDir = path.join(__dirname, "../media", tempFolder)
+		await fs.mkdir(tempDir, { recursive: true })
 		await Promise.all(
-			videoLinks.map(link => downloadFile(link, chat_id + "/" + crypto.randomBytes(16).toString("hex") + ".mp4")),
+			videoLinks.map(link => downloadFile(link, tempDir + "/" + crypto.randomBytes(16).toString("hex") + ".mp4")),
 		)
-		videoLinks = (await fs.readdir(chat_id)).map(dir => chat_id + "/" + dir)
+		videoLinks = (await fs.readdir(tempDir)).map(dir => "media/" + tempFolder + "/" + dir)
 	}
 	return { imageLinks, videoLinks }
 }
