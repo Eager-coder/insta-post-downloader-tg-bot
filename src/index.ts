@@ -4,6 +4,8 @@ import puppeteer from "puppeteer"
 import downloadMedia from "./downloadMedia"
 import fs from "fs/promises"
 import crypto from "crypto"
+import path from "path"
+
 dotenv.config()
 
 const port = Number(process.env.PORT!) || 443
@@ -27,11 +29,15 @@ if (process.env.NODE_ENV === "production") {
 		const chatId = msg.chat.id
 		try {
 			if (msg.text === "/start") {
-				bot.sendMessage(chatId, "Hi! This bot allows you to download instagram posts. Simply send the URL of the post)")
+				bot.sendMessage(
+					chatId,
+					"Hi! This bot allows you to download instagram posts, reels and stories. Simply send the link)",
+				)
 			} else if (
 				msg.text?.match(/\/p\/(.*?)\//) ||
 				msg.text?.match(/\/tv\/(.*?)\//) ||
-				msg.text?.match(/\/reel\/(.*?)\//)
+				msg.text?.match(/\/reel\/(.*?)\//) ||
+				msg.text?.match(/\/stories\/(.*?)\//)
 			) {
 				bot.sendChatAction(chatId, "upload_photo")
 				const tempFolder = crypto.randomUUID()
@@ -42,15 +48,14 @@ if (process.env.NODE_ENV === "production") {
 				}
 				if (videoLinks.length) {
 					await Promise.all(videoLinks.map(async link => bot.sendDocument(chatId, link)))
-					await fs.rm("../media/" + tempFolder, { recursive: true, force: true })
+					await fs.rm(path.join(__dirname, "../media/" + tempFolder), { recursive: true, force: true })
 				}
 			} else {
 				bot.sendMessage(chatId, "Invalid post link.")
 			}
 		} catch (error) {
 			console.log(error)
-
-			bot.sendMessage(chatId, "Something went wrong (((. Please try again later.")
+			bot.sendMessage(chatId, "Something went wrong (. Please try again later.")
 		}
 	})
 })()
