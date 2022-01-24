@@ -5,7 +5,18 @@ import downloadMedia from "./downloadMedia"
 import fs from "fs/promises"
 dotenv.config()
 
-const bot = new TelegramBot(process.env.BOT_TOKEN!, { polling: true })
+const port = Number(process.env.PORT!) || 443
+const host = "0.0.0.0"
+const externalUrl = process.env.SERVER_URL
+const token = process.env.BOT_TOKEN!
+
+let bot: TelegramBot
+if (process.env.NODE_ENV === "production") {
+	bot = new TelegramBot(token, { webHook: { host, port } })
+	bot.setWebHook(externalUrl + ":443/bot" + token)
+} else {
+	bot = new TelegramBot(token, { polling: true })
+}
 
 ;(async () => {
 	const browser = await puppeteer.launch({
