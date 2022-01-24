@@ -3,6 +3,7 @@ import dotenv from "dotenv"
 import puppeteer from "puppeteer"
 import downloadMedia from "./downloadMedia"
 import fs from "fs/promises"
+import crypto from "crypto"
 dotenv.config()
 
 const port = Number(process.env.PORT!) || 443
@@ -27,15 +28,21 @@ if (process.env.NODE_ENV === "production") {
 		try {
 			if (msg.text === "/start") {
 				bot.sendMessage(chatId, "Hi! This bot allows you to download instagram posts. Simply send the URL of the post)")
-			} else if (msg.text?.includes("https://www.instagram.com/p/")) {
+			} else if (
+				msg.text?.match(/\/p\/(.*?)\//) ||
+				msg.text?.match(/\/tv\/(.*?)\//) ||
+				msg.text?.match(/\/reel\/(.*?)\//)
+			) {
 				bot.sendChatAction(chatId, "upload_photo")
-				const { imageLinks, videoLinks } = await downloadMedia(browser, msg.text, chatId.toString())
+				const tempFolder = crypto.randomUUID()
+
+				const { imageLinks, videoLinks } = await downloadMedia(browser, msg.text, tempFolder)
 				if (imageLinks.length) {
 					await Promise.all(imageLinks.map(link => bot.sendPhoto(chatId, link)))
 				}
 				if (videoLinks.length) {
 					await Promise.all(videoLinks.map(async link => bot.sendDocument(chatId, link)))
-					await fs.rm(chatId.toString(), { recursive: true, force: true })
+					await fs.rm("../media/" + tempFolder, { recursive: true, force: true })
 				}
 			} else {
 				bot.sendMessage(chatId, "Invalid post link.")
