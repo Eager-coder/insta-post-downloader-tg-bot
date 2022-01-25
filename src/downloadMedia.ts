@@ -57,6 +57,7 @@ export default async function downloadMedia(browser: Puppeteer.Browser, post_url
 			)
 			videoLinks = (await fs.readdir(tempDir)).map(dir => "media/" + tempFolder + "/" + dir)
 		}
+		await page.close()
 		return { imageLinks, videoLinks }
 	} else {
 		await page.goto("https://snapinsta.app/")
@@ -78,6 +79,7 @@ export default async function downloadMedia(browser: Puppeteer.Browser, post_url
 			)
 			videoLinks = (await fs.readdir(tempDir)).map(dir => "media/" + tempFolder + "/" + dir)
 		}
+		await page.close()
 		return { imageLinks, videoLinks }
 	}
 }
